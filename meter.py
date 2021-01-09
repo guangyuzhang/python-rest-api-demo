@@ -168,17 +168,48 @@ class MeterItem:
         new_values = json.loads(raw_json)
 
         # TODO 1: validate meter name in json
+        if 'name' not in new_values['data'].keys() or \
+                not isinstance(new_values['data']['name'], str) or \
+                len(str.strip(new_values['data']['name'])) == 0:
+            raise falcon.HTTPError(falcon.HTTP_400, title='API.BAD_REQUEST',
+                                   description='API.INVALID_METER_NAME')
+        name = str.strip(new_values['data']['name'])
 
         # TODO 2: validate meter description in json
+        if 'description' in new_values['data'].keys() and \
+                new_values['data']['description'] is not None and \
+                len(str(new_values['data']['description'])) > 0:
+            description = str.strip(new_values['data']['description'])
+        else:
+            description = None
 
         cnx = mysql.connector.connect(**config.myems_demo_db)
         cursor = cnx.cursor()
 
         # TODO 3: check if meter id exists
+        cursor.execute(" SELECT * "
+                       " FROM tbl_meters "
+                       " WHERE id = %s ", (id_,))
+        rows = cursor.fetchall()
+        if len(rows) <= 0:
+            cursor.close()
+            cnx.disconnect()
+            raise falcon.HTTPError(falcon.HTTP_404, title='API.NOT_FOUND',
+                                   description='API.METER_NOT_FOUND')
 
         # TODO 4: check if meter name is in use by other meters
+        for row in rows:
+            if name == row[1]:
+                raise falcon.HTTPError(falcon.HTTP_400, title='API.METIS_EXISTS',
+                                       description='API.METIS_EXISTS')
+
+
 
         # TODO 5: update meter in database
+        query = (" UPDATE tbl_meters set name=%s,description=%s WHERE id=%s")
+        cursor.execute(query, (name, description, id_))
+        cnx.commit()
+
 
         cursor.close()
         cnx.disconnect()
