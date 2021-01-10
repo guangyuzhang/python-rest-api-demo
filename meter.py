@@ -215,9 +215,9 @@ class MeterItem:
                  " SET name = %s, description = %s "
                  " WHERE id = %s ")
         cursor.execute(query, (name, description, id_,))
-        
-        cnx.commit()
 
+        cnx.commit()
+        
         cursor.close()
         cnx.disconnect()
 
