@@ -186,30 +186,22 @@ class MeterItem:
         cursor = cnx.cursor()
 
         # TODO 3: check if meter id exists
-        cursor.execute(" SELECT id "
-                       " FROM tbl_meters "
-                       " WHERE id = id_")
+        cursor.execute(" SELECT id  FROM tbl_meters WHERE id = id_")
         if cursor.fetchone() is not None:
             cursor.close()
             cnx.disconnect()
             raise falcon.HTTPError(falcon.HTTP_404, title='API.BAD_REQUEST',
                                    description='API.METER_ID_IS_ALREADY_IN_USE')
         # TODO 4: check if meter name is in use by other meters
-        cursor.execute(" SELECT name "
-                       " FROM tbl_meters "
-                       " WHERE name = %s ", (name,))
+        cursor.execute(" SELECT name FROM tbl_meters  WHERE id = id_")
         if cursor.fetchone() is not None:
             cursor.close()
             cnx.disconnect()
-            raise falcon.HTTPError(falcon.HTTP_404, title='API.BAD_REQUEST',
+            raise falcon.HTTPError(falcon.HTTP_400, title='API.BAD_REQUEST',
                                    description='API.METER_NAME_IS_ALREADY_IN_USE')
         # TODO 5: update meter in database
-        put_values = (" INSERT INTO tbl_meters "
-                      "    (name, uuid, description) "
-                      " VALUES (%s, %s, %s) ")
-        cursor.execute(put_values, (name,
-                                    str(uuid.uuid4()),
-                                    description))
+        put_values = ("UPDATE tbl_meters set name=%s,description=%s WHERE id=%s")
+        cursor.execute(put_values, (name,description,id_))
         cnx.commit()
         cursor.close()
         cnx.disconnect()
