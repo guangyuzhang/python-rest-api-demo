@@ -196,11 +196,11 @@ class MeterItem:
 
         cursor.execute(" SELECT name "
                        " FROM tbl_meters "
-                       " WHERE name = %s ", (name,))
+                       " WHERE name = %s AND id != %s ", (name,id_))
         if cursor.fetchone() is not None:
             cursor.close()
             cnx.disconnect()
-            raise falcon.HTTPError(falcon.HTTP_404, title='API.BAD_REQUEST',
+            raise falcon.HTTPError(falcon.HTTP_400, title='API.BAD_REQUEST',
                                    description='API.METER_NAME_IS_ALREADY_IN_USE')
 
         update_values = (" UPDATE tbl_meters "
