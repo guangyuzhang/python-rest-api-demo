@@ -198,17 +198,11 @@ class MeterItem:
                                    description='API.METER_NOT_FOUND')
 
         # TODO 4: check if meter name is in use by other meters
-<<<<<<< HEAD
-        for row in rows:
-            if name == row[1]:
-                raise falcon.HTTPError(falcon.HTTP_400, title='API.METIS_EXISTS',
-=======
         cursor.execute("SELECT name FROM tbl_meters  WHERE name = %s AND id != %s ", (name, id_))
         if cursor.fetchone() is not None:
             cursor.close()
             cnx.disconnect()
             raise falcon.HTTPError(falcon.HTTP_400, title='API.METIS_EXISTS',
->>>>>>> master
                                        description='API.METIS_EXISTS')
 
 
