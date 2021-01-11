@@ -168,18 +168,49 @@ class MeterItem:
         new_values = json.loads(raw_json)
 
         # TODO 1: validate meter name in json
-
+        if 'name' not in new_values['data'].keys() or \
+                not isinstance(new_values['data']['name'], str) or \
+                len(str.strip(new_values['data']['name'])) == 0:
+            raise falcon.HTTPError(falcon.HTTP_400, title='API.BAD_REQUEST',
+                                   description='API.INVALID_METER_NAME')
+        name = str.strip(new_values['data']['name'])
         # TODO 2: validate meter description in json
+        if 'description' in new_values['data'].keys() and \
+                new_values['data']['description'] is not None and \
+                len(str(new_values['data']['description'])) > 0:
+            description = str.strip(new_values['data']['description'])
+        else:
+            description = None
 
         cnx = mysql.connector.connect(**config.myems_demo_db)
         cursor = cnx.cursor()
 
         # TODO 3: check if meter id exists
-
+        cursor.execute(" SELECT id "
+                       " FROM tbl_meters "
+                       " WHERE id = id_")
+        if cursor.fetchone() is not None:
+            cursor.close()
+            cnx.disconnect()
+            raise falcon.HTTPError(falcon.HTTP_404, title='API.BAD_REQUEST',
+                                   description='API.METER_ID_IS_ALREADY_IN_USE')
         # TODO 4: check if meter name is in use by other meters
-
+        cursor.execute(" SELECT name "
+                       " FROM tbl_meters "
+                       " WHERE name = %s ", (name,))
+        if cursor.fetchone() is not None:
+            cursor.close()
+            cnx.disconnect()
+            raise falcon.HTTPError(falcon.HTTP_404, title='API.BAD_REQUEST',
+                                   description='API.METER_NAME_IS_ALREADY_IN_USE')
         # TODO 5: update meter in database
-
+        put_values = (" INSERT INTO tbl_meters "
+                      "    (name, uuid, description) "
+                      " VALUES (%s, %s, %s) ")
+        cursor.execute(put_values, (name,
+                                    str(uuid.uuid4()),
+                                    description))
+        cnx.commit()
         cursor.close()
         cnx.disconnect()
 
