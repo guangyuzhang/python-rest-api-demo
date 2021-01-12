@@ -186,14 +186,18 @@ class MeterItem:
         cursor = cnx.cursor()
 
         # TODO 3: check if meter id exists
-        cursor.execute(" SELECT id  FROM tbl_meters WHERE id = id_")
-        if cursor.fetchone() is not None:
+        cursor.execute("  SELECT id "
+                       " FROM tbl_meters "
+                       " WHERE id = %s ", (id_,))
+        if cursor.fetchone() is None:
             cursor.close()
             cnx.disconnect()
-            raise falcon.HTTPError(falcon.HTTP_404, title='API.BAD_REQUEST',
-                                   description='API.METER_ID_IS_ALREADY_IN_USE')
+            raise falcon.HTTPError(falcon.HTTP_404, title='API.NOT_FOUND',
+                                   description='API.METER_ID_NOT_FOUND')
         # TODO 4: check if meter name is in use by other meters
-        cursor.execute(" SELECT name FROM tbl_meters  WHERE id = id_")
+        cursor.execute(" SELECT name "
+                       " FROM tbl_meters "
+                       " WHERE name = %s AND id != %s", (name,id_))
         if cursor.fetchone() is not None:
             cursor.close()
             cnx.disconnect()
